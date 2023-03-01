@@ -1,4 +1,4 @@
-import { signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword } from "firebase/auth";
 import { createContext, useEffect, useState } from "react";
 import { auth } from "../service/firebase";
 import { useNavigate } from 'react-router-dom'
@@ -18,6 +18,7 @@ interface AuthContextProps {
     loading: boolean
     error: string | null
     signIn: (credentials: SignInCredential)=> Promise<void>
+    signUp: (credentials: SignInCredential)=> Promise<void>
     setLoading: (state: boolean) => void
     killSessionFirebase: () => void
 }
@@ -47,6 +48,13 @@ export function AuthContextProvider({children}: AuthContextProviderProps){
         setLoading(false)
     }
 
+    const signUp = async (credentials: SignInCredential) => {
+        await createUserWithEmailAndPassword(auth, credentials.email, credentials.password)
+        .then((userCredentials)=> {
+            setError(null)
+        }).catch(error => setError(error.code))
+    }
+
     const killSessionFirebase = () => {
         signOut(auth).then(()=> {
             navigate('/login')
@@ -67,7 +75,7 @@ export function AuthContextProvider({children}: AuthContextProviderProps){
 
 
     return(
-        <AuthContext.Provider value={{loading, user, error, signIn, setLoading, killSessionFirebase}}>
+        <AuthContext.Provider value={{loading, user, error, signIn, setLoading, killSessionFirebase, signUp}}>
             {children}
         </AuthContext.Provider>
     )
